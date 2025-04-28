@@ -24,33 +24,91 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('total')
-                    ->required()
-                    ->numeric()
-                    ->prefix('DH')
-                    ->disabled(),
-                Forms\Components\TextInput::make('discount')
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('DH'),
-                Forms\Components\TextInput::make('mnt_recu')
-                    ->required()
-                    ->numeric()
-                    ->prefix('DH')
-                    ->label('Montant Reçu'),
-                Forms\Components\TextInput::make('mnt_rendu')
-                    ->numeric()
-                    ->prefix('DH')
-                    ->disabled()
-                    ->label('Montant Rendu'),
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'complete' => 'Complete',
-                        'cancel' => 'Cancelled',
+                Forms\Components\Section::make('Order Items')
+                    ->schema([
+                        Forms\Components\Repeater::make('orderItems')
+                            ->relationship()
+                            ->schema([
+                                Forms\Components\Select::make('product_id')
+                                    ->relationship('product', 'name')
+                                    ->required()
+                                    ->reactive()
+                                    ->afterStateUpdated(fn ($state, Forms\Set $set, $context) =>
+                                        $context === 'create' ? $set('price', \App\Models\Product::find($state)?->price ?? 0) : null
+                                    ),
+                                Forms\Components\TextInput::make('quantity')
+                                    ->required()
+                                    ->numeric()
+                                    ->default(1)
+                                    ->minValue(1)
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, callable $get, Forms\Set $set) {
+                                        $items = collect($get('../../orderItems'))
+                                            ->map(fn ($item) => $item['quantity'] * ($item['price'] ?? 0))
+                                            ->sum();
+                                        $discount = $get('../../discount') ?? 0;
+                                        $total = $items - $discount;
+                                        $set('../../total', $total);
+                                        
+                                        $mnt_recu = $get('../../mnt_recu') ?? 0;
+                                        $set('../../mnt_rendu', max(0, $mnt_recu - $total));
+                                    }),
+                                Forms\Components\TextInput::make('price')
+                                    ->required()
+                                    ->numeric()
+                                    ->prefix('DH')
+                                    ->disabled()
+                                    ->reactive(),
+                            ])
+                            ->columns(3)
+                    ])->columnSpanFull(),
+                Forms\Components\Section::make('Order Details')
+                    ->schema([
+                        Forms\Components\TextInput::make('total')
+                            ->required()
+                            ->numeric()
+                            ->prefix('DH')
+                            ->disabled(),
+                        Forms\Components\TextInput::make('discount')
+                            ->numeric()
+                            ->default(0)
+                            ->prefix('DH')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $get, Forms\Set $set) {
+                                $items = collect($get('../orderItems'))
+                                    ->map(fn ($item) => $item['quantity'] * ($item['price'] ?? 0))
+                                    ->sum();
+                                $total = $items - ($state ?? 0);
+                                $set('../total', $total);
+                                
+                                $mnt_recu = $get('../mnt_recu') ?? 0;
+                                $set('../mnt_rendu', max(0, $mnt_recu - $total));
+                            }),
+                        Forms\Components\TextInput::make('mnt_recu')
+                            ->required()
+                            ->numeric()
+                            ->prefix('DH')
+                            ->label('Montant Reçu')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $get, Forms\Set $set) {
+                                $total = $get('../total') ?? 0;
+                                $set('../mnt_rendu', max(0, ($state ?? 0) - $total));
+                            }),
+                        Forms\Components\TextInput::make('mnt_rendu')
+                            ->numeric()
+                            ->prefix('DH')
+                            ->disabled()
+                            ->label('Montant Rendu'),
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'complete' => 'Complete',
+                                'cancel' => 'Cancelled',
+                            ])
+                            ->required()
+                            ->default('pending'),
                     ])
-                    ->required()
-                    ->default('pending'),
+                    ->columns(2),
             ]);
     }
 

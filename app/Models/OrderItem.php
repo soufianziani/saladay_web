@@ -39,6 +39,40 @@ class OrderItem extends Model
             if (!$orderItem->price) {
                 $orderItem->price = $orderItem->product->price;
             }
+            $orderItem->price = $orderItem->price * $orderItem->quantity;
+        });
+
+        static::created(function ($orderItem) {
+            // Update order total
+            $order = $orderItem->order;
+            if ($order) {
+                $total = $order->orderItems()->sum('price');
+                $order->total = $total - ($order->discount ?? 0);
+                $order->mnt_rendu = max(0, $order->mnt_recu - $order->total);
+                $order->save();
+            }
+        });
+
+        static::updated(function ($orderItem) {
+            // Update order total after changes
+            $order = $orderItem->order;
+            if ($order) {
+                $total = $order->orderItems()->sum('price');
+                $order->total = $total - ($order->discount ?? 0);
+                $order->mnt_rendu = max(0, $order->mnt_recu - $order->total);
+                $order->save();
+            }
+        });
+
+        static::deleted(function ($orderItem) {
+            // Update order total after deletion
+            $order = $orderItem->order;
+            if ($order) {
+                $total = $order->orderItems()->sum('price');
+                $order->total = $total - ($order->discount ?? 0);
+                $order->mnt_rendu = max(0, $order->mnt_recu - $order->total);
+                $order->save();
+            }
         });
     }
 }

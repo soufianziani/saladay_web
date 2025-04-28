@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class ProductResource extends Resource
 {
@@ -33,7 +34,11 @@ class ProductResource extends Resource
                     ->prefix('DH'),
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->directory('products'),
+                    ->disk('public')
+                    ->directory('products')
+                    ->visibility('public')
+                    ->imageEditor()
+                    ->openable(),
                 Forms\Components\TextInput::make('earn')
                     ->required()
                     ->numeric()
@@ -56,7 +61,14 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->money('mad')
                     ->sortable(),
-                Tables\Columns\ImageColumn::make('image'),
+                Tables\Columns\ImageColumn::make('image')
+                    ->disk('public')
+                    ->width(100)
+                    ->height(100),
+                Tables\Columns\TextColumn::make('image_url')
+                    ->label('Image URL')
+                    ->copyable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('earn')
                     ->money('mad')
                     ->sortable(),

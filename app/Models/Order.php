@@ -38,6 +38,24 @@ class Order extends Model
             if (!$order->discount) {
                 $order->discount = 0;
             }
+            if (!$order->total) {
+                $order->total = 0;
+            }
+            
+            // Calculate mnt_rendu if mnt_recu is set
+            if ($order->mnt_recu) {
+                $order->mnt_rendu = max(0, $order->mnt_recu - $order->total);
+            }
+        });
+
+        static::created(function ($order) {
+            // Update total after order items are saved
+            $total = $order->orderItems()->sum('price');
+            if ($total > 0) {
+                $order->total = $total - ($order->discount ?? 0);
+                $order->mnt_rendu = max(0, $order->mnt_recu - $order->total);
+                $order->save();
+            }
         });
     }
 }
