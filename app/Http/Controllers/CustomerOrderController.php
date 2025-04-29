@@ -16,7 +16,7 @@ class CustomerOrderController extends Controller
             $orders = Order::with('orderItems.product')
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
+
             return response()->json([
                 'orders' => $orders
             ]);
@@ -43,23 +43,23 @@ class CustomerOrderController extends Controller
                 'mnt_recu' => 'required|numeric|min:0',
                 'discount' => 'sometimes|numeric|min:0'
             ]);
-    
+
             \DB::beginTransaction();
-    
+
             try {
                 $total = 0;
                 $items = [];
-                
+
                 foreach ($request->items as $item) {
                     $product = Product::findOrFail($item['product_id']);
-                    
+
                     if ($product->available != 1) {
                         throw new \Exception("المنتج {$product->name} غير متاح حاليًا");
                     }
-                    
+
                     $subtotal = $product->price * $item['quantity'];
                     $total += $subtotal;
-                    
+
                     $items[] = [
                         'product' => $product,
                         'quantity' => $item['quantity'],
@@ -67,12 +67,12 @@ class CustomerOrderController extends Controller
                         'subtotal' => $subtotal
                     ];
                 }
-    
+
                 $total = round($total, 2);
                 $discount = round($request->discount ?? 0, 2);
                 $mnt_recu = round($request->mnt_recu, 2);
                 $finalTotal = max(0, round($total - $discount, 2));
-    
+
                 if ($mnt_recu < $finalTotal) {
                     throw new \Exception(
                         "المبلغ المدفوع غير كافي. " .
@@ -80,7 +80,7 @@ class CustomerOrderController extends Controller
                         "الناقص: " . ($finalTotal - $mnt_recu)
                     );
                 }
-    
+
                 $order = Order::create([
                     'total' => $total,
                     'discount' => $discount,
@@ -90,7 +90,7 @@ class CustomerOrderController extends Controller
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
-    
+
                 foreach ($items as $item) {
                     $order->orderItems()->create([
                         'product_id' => $item['product']->id,
@@ -99,15 +99,15 @@ class CustomerOrderController extends Controller
                         'subtotal' => $item['subtotal']
                     ]);
                 }
-    
+
                 \DB::commit();
-    
+
                 return response()->json([
                     'success' => true,
                     'order' => $order->load('orderItems.product'),
                     'message' => 'تم إنشاء الطلب بنجاح'
                 ], 201);
-    
+
             } catch (\Exception $e) {
                 \DB::rollBack();
                 return response()->json([
@@ -126,7 +126,7 @@ class CustomerOrderController extends Controller
     public function getReceipt($id)
     {
         $order = Order::with(['orderItems.product'])->findOrFail($id);
-        
+
         return response()->json([
             'success' => true,
             'receipt' => [
@@ -153,7 +153,7 @@ class CustomerOrderController extends Controller
     {
         $order = Order::findOrFail($id);
         $order->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Order deleted successfully'

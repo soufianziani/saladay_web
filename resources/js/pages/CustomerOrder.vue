@@ -24,25 +24,25 @@
           <div class="bg-white rounded-lg shadow-sm p-4">
             <h2 class="text-lg font-medium mb-3">Categories</h2>
             <div class="flex space-x-2 overflow-x-auto pb-2">
-              <button 
-                @click="selectedCategory = null" 
+              <button
+                @click="selectedCategory = null"
                 :class="[
                   'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap',
-                  selectedCategory === null 
-                    ? 'bg-green-600 text-white' 
+                  selectedCategory === null
+                    ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 ]"
               >
                 All
               </button>
-              <button 
-                v-for="category in categories" 
+              <button
+                v-for="category in categories"
                 :key="category.id"
                 @click="selectedCategory = category.id"
                 :class="[
                   'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap',
-                  selectedCategory === category.id 
-                    ? 'bg-green-600 text-white' 
+                  selectedCategory === category.id
+                    ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 ]"
               >
@@ -55,8 +55,8 @@
           <div class="bg-white rounded-lg shadow-sm p-4">
             <h2 class="text-lg font-medium mb-4">Products</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <div 
-                v-for="product in filteredProducts" 
+              <div
+                v-for="product in filteredProducts"
                 :key="product.id"
                 @click="addToCart(product)"
                 class="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer bg-white"
@@ -91,14 +91,14 @@
               </svg>
               Shopping Cart
             </h2>
-            
+
             <div v-if="cart.length === 0" class="text-center py-8">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <p class="mt-3 text-gray-500">Your cart is empty</p>
             </div>
-            
+
             <div v-else class="space-y-4">
               <div v-for="item in cart" :key="item.product.id" class="flex justify-between items-center pb-4 border-b border-gray-100">
                 <div class="flex items-center space-x-3">
@@ -120,7 +120,7 @@
                     <p class="text-sm text-gray-500">{{ formatPrice(item.product.price) }}</p>
                   </div>
                 </div>
-                
+
                 <div class="flex items-center space-x-3">
                   <button @click.stop="decrementQuantity(item)" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -185,7 +185,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
                   <div class="flex items-center space-x-3">
                     <img src="/assets/glovo.png" alt="Glovo" class="h-6 w-6 object-contain" />
@@ -239,7 +239,7 @@
               </svg>
               Payment
             </h2>
-            
+
             <div class="space-y-5">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Amount Received</label>
@@ -259,7 +259,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Quick Amounts</label>
                 <div class="grid grid-cols-3 gap-2">
@@ -294,8 +294,8 @@
                 </div>
               </div>
 
-              <button 
-                @click="showConfirmModal = true" 
+              <button
+                @click="showConfirmModal = true"
                 :disabled="!canSubmitOrder"
                 :class="[
                   'w-full py-3 px-4 rounded-lg text-sm font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500',
@@ -457,7 +457,7 @@
               <span class="text-sm font-medium">{{ formatPrice(orderDetails?.mnt_rendu) }}</span>
             </div>
           </div>
-          <button 
+          <button
   @click="printReceipt"
   class="mt-6 w-full bg-blue-600 text-white py-3 px-6 rounded-xl font-medium shadow-sm hover:bg-blue-700 transition-colors duration-200 mb-3"
 >
@@ -655,10 +655,10 @@ const printReceipt = async () => {
   try {
     // Fetch the latest receipt data from the server
     const response = await axios.get(`/customer-order/receipt/${orderDetails.value.id}`);
-    
+
     if (response.data.success) {
       const receipt = response.data.receipt;
-      
+
       const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no');
       if (receiptWindow) {
     receiptWindow.document.write(`
@@ -667,8 +667,8 @@ const printReceipt = async () => {
       <head>
         <title>Reçu #${receipt.order_id}</title>
         <style>
-          body { 
-            margin: 0; 
+          body {
+            margin: 0;
             padding: 10px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
@@ -726,25 +726,25 @@ const printReceipt = async () => {
       <body>
         <div class="receipt">
           <div class="double-divider"></div>
-          
+
           <div class="header">
-            <h3>SNACK SALADAY</h3>
+            <h2>SALADAY</h2>
             ${canziDiscount.value ? '<p>Commande By Canzi</p>' : ''}
             ${glovoDiscount.value ? '<p>Commande By Glovo</p>' : ''}
             <p>instagram : @saladay.meeka</p>
-            <p>téléphone : 07 00 12 29 54</p>
+            <p>téléphone : 06 03 82 29 54</p>
           </div>
-          
+
           <div class="divider"></div>
-          
+
           <div>
             <p>Caissier: ZAKARIA</p>
             <p>Date: ${receipt.date}</p>
             <p>Reçu #: REC-${receipt.order_id}</p>
           </div>
-          
+
           <div class="divider"></div>
-          
+
           <div class="items">
             <div class="item-row">
               <span class="item-name"><strong>Produit</strong></span>
@@ -760,9 +760,9 @@ const printReceipt = async () => {
               </div>
             `).join('')}
           </div>
-          
+
           <div class="divider"></div>
-          
+
           <div class="summary">
             <div class="item-row">
               <span>Sous-total:</span>
@@ -775,11 +775,11 @@ const printReceipt = async () => {
             </div>
             ` : ''}
             <div class="item-row">
-              <span>Montant reçu:</span>
+              <span>Mnt reçu:</span>
               <span>${formatPrice(receipt.amount_received)}</span>
             </div>
             <div class="item-row">
-              <span>Monnaie rendue:</span>
+              <span>Mnt rendue:</span>
               <span>${formatPrice(receipt.change)}</span>
             </div>
             <div class="item-row total-row">
@@ -787,13 +787,13 @@ const printReceipt = async () => {
               <span>${formatPrice(receipt.total)}</span>
             </div>
           </div>
-          
+
           <div class="double-divider"></div>
-          
+
           <div class="footer">
             <p>Merci de votre visite!</p>
           </div>
-          
+
           <div class="double-divider"></div>
         </div>
         <script>
@@ -845,16 +845,16 @@ const decrementQuantity = (item: CartItem) => {
 }
 
 const formatPrice = (price: number | undefined) => {
-  if (price === undefined) return '$0.00'
+  if (price === undefined) return '0.00 DH '
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'MAD'
   }).format(price)
 }
 
 const submitOrder = async () => {
   if (!canSubmitOrder.value) return;
-  
+
   try {
     processing.value = true;
     showConfirmModal.value = false;
