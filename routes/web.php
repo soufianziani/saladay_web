@@ -10,10 +10,23 @@ Route::get('/', function () {
 Route::get('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'index'])->name('customer.order');
 Route::post('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'store'])->name('customer.order.store');
 Route::get('/customer-order/receipt/{id}', [App\Http\Controllers\CustomerOrderController::class, 'getReceipt'])->name('customer.order.receipt');
+Route::delete('/customer-order/{id}', [App\Http\Controllers\CustomerOrderController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])
+    ->name('customer.order.destroy');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/orders', function () {
+    $orders = \App\Models\Order::with(['orderItems.product'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+        
+    return Inertia::render('Orders', [
+        'orders' => $orders
+    ]);
+})->middleware(['auth', 'verified'])->name('orders');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -2,8 +2,17 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <h1 class="text-2xl font-semibold text-gray-900">Order Management</h1>
+        <Link
+          href="/orders"
+          class="flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Orders History
+        </Link>
       </div>
     </header>
 
@@ -93,10 +102,18 @@
             <div v-else class="space-y-4">
               <div v-for="item in cart" :key="item.product.id" class="flex justify-between items-center pb-4 border-b border-gray-100">
                 <div class="flex items-center space-x-3">
-                  <div class="bg-gray-100 rounded-lg p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
+                  <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                    <img
+                      v-if="item.product.image_url"
+                      :src="item.product.image_url"
+                      :alt="item.product.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                   </div>
                   <div>
                     <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
@@ -487,6 +504,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import axios from 'axios'
 
 // Configure axios defaults
@@ -643,124 +661,156 @@ const printReceipt = async () => {
       
       const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no');
       if (receiptWindow) {
-        receiptWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Receipt #${receipt.order_id}</title>
-            <style>
-              body { 
-                margin: 0; 
-                padding: 20px;
-                font-family: 'Courier New', monospace;
-                font-size: 14px;
-              }
-              .receipt {
-                width: 100%;
-                max-width: 300px;
-                margin: 0 auto;
-              }
-              .header, .footer {
-                text-align: center;
-                margin: 10px 0;
-              }
-              .items {
-                width: 100%;
-                margin: 10px 0;
-              }
-              .item-row {
-                display: flex;
-                justify-content: space-between;
-                margin: 3px 0;
-              }
-              .divider {
-                border-top: 1px dashed #000;
-                margin: 10px 0;
-              }
-              .total-row {
-                font-weight: bold;
-                margin: 5px 0;
-              }
-              @media print {
-                body { padding: 0; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="receipt">
-              <div class="header">
-                <h2>SNACK SALADAY</h2>
-                <p>instagram : @saladay.meeka</p>
-                <p>phone :  07 00 12 29 54 </p>
-                <p>Cashier: ZAKARIA</p>
-                <p>Date: ${receipt.date}</p>
-                <p>Receipt #: REC-${receipt.order_id}</p>
-              </div>
-              
-              <div class="divider"></div>
-              
-              <div class="items">
-                ${receipt.items.map(item => `
-                  <div class="item-row">
-                    <span>${item.name}</span>
-                    <span>${item.quantity} × ${formatPrice(item.price)}</span>
-                  </div>
-                  <div class="item-row">
-                    <span></span>
-                    <span>${formatPrice(item.subtotal)}</span>
-                  </div>
-                `).join('')}
-              </div>
-              
-              <div class="divider"></div>
-              
-              <div class="summary">
-                <div class="item-row">
-                  <span>Subtotal:</span>
-                  <span>${formatPrice(receipt.subtotal)}</span>
-                </div>
-                ${receipt.discount > 0 ? `
-                <div class="item-row">
-                  <span>Discount:</span>
-                  <span>-${formatPrice(receipt.discount)}</span>
-                </div>
-                ` : ''}
-                <div class="item-row">
-                  <span>Amount Received:</span>
-                  <span>${formatPrice(receipt.amount_received)}</span>
-                </div>
-                <div class="item-row">
-                  <span>Change:</span>
-                  <span>${formatPrice(receipt.change)}</span>
-                </div>
-              <div class="divider"></div>
-              <div class="item-row total-row">
-                  <span>TOTAL:</span>
-                  <span>${formatPrice(receipt.total)}</span>
-                </div>
-              </div>
-              
-              <div class="divider"></div>
-              
-              <div class="footer">
-                <p>Thank you for your purchase!</p>
-              </div>
+    receiptWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Reçu #${receipt.order_id}</title>
+        <style>
+          body { 
+            margin: 0; 
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+          }
+          .receipt {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+          }
+          .header, .footer {
+            text-align: center;
+            margin: 10px 0;
+          }
+          .divider {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+            text-align: center;
+          }
+          .items {
+            width: 100%;
+            margin: 10px 0;
+          }
+          .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+          }
+          .item-name {
+            flex: 2;
+          }
+          .item-qty {
+            flex: 1;
+            text-align: center;
+          }
+          .item-price {
+            flex: 1;
+            text-align: right;
+          }
+          .summary {
+            margin: 10px 0;
+          }
+          .total-row {
+            font-weight: bold;
+            margin: 5px 0;
+          }
+          .double-divider {
+            border-top: 3px double #000;
+            margin: 10px 0;
+          }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="double-divider"></div>
+          
+          <div class="header">
+            <h3>SNACK SALADAY</h3>
+            ${canziDiscount.value ? '<p>Commande By Canzi</p>' : ''}
+            ${glovoDiscount.value ? '<p>Commande By Glovo</p>' : ''}
+            <p>instagram : @saladay.meeka</p>
+            <p>téléphone : 07 00 12 29 54</p>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div>
+            <p>Caissier: ZAKARIA</p>
+            <p>Date: ${receipt.date}</p>
+            <p>Reçu #: REC-${receipt.order_id}</p>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="items">
+            <div class="item-row">
+              <span class="item-name"><strong>Produit</strong></span>
+              <span class="item-qty"><strong>Qnt</strong></span>
+              <span class="item-price"><strong>Prix</strong></span>
             </div>
-            <script>
-              window.onload = function() {
-                setTimeout(function() {
-                  window.print();
-                  setTimeout(function() {
-                    window.close();
-                  }, 500);
-                }, 200);
-              }
-            <\/script>
-          </body>
-          </html>
-        `);
-        receiptWindow.document.close();
-      }
+            <div class="divider"></div>
+            ${receipt.items.map(item => `
+              <div class="item-row">
+                <span class="item-name">${item.name}</span>
+                <span class="item-qty">${item.quantity}</span>
+                <span class="item-price">${formatPrice(item.price)}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="summary">
+            <div class="item-row">
+              <span>Sous-total:</span>
+              <span>${formatPrice(receipt.subtotal)}</span>
+            </div>
+            ${receipt.discount > 0 ? `
+            <div class="item-row">
+              <span>Remise:</span>
+              <span>-${formatPrice(receipt.discount)}</span>
+            </div>
+            ` : ''}
+            <div class="item-row">
+              <span>Montant reçu:</span>
+              <span>${formatPrice(receipt.amount_received)}</span>
+            </div>
+            <div class="item-row">
+              <span>Monnaie rendue:</span>
+              <span>${formatPrice(receipt.change)}</span>
+            </div>
+            <div class="item-row total-row">
+              <span>TOTAL:</span>
+              <span>${formatPrice(receipt.total)}</span>
+            </div>
+          </div>
+          
+          <div class="double-divider"></div>
+          
+          <div class="footer">
+            <p>Merci de votre visite!</p>
+          </div>
+          
+          <div class="double-divider"></div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 500);
+            }, 200);
+          }
+        <\/script>
+      </body>
+      </html>
+    `);
+    receiptWindow.document.close();
+}
     } else {
       throw new Error('Failed to fetch receipt data');
     }
