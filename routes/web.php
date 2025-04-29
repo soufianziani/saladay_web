@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 Route::get('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'index'])->name('customer.order');
 Route::post('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'store'])->name('customer.order.store');
-Route::get('/customer-order/{id}/receipt', [App\Http\Controllers\CustomerOrderController::class, 'getReceipt'])->name('customer.order.receipt');
+Route::get('/customer-order/receipt/{id}', [App\Http\Controllers\CustomerOrderController::class, 'getReceipt'])->name('customer.order.receipt');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');

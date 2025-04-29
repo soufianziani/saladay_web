@@ -11,8 +11,8 @@ class Order extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_COMPLETED = 'complete';
+    public const STATUS_CANCELLED = 'cancel';
 
     protected $fillable = [
         'total',

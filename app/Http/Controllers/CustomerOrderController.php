@@ -114,28 +114,28 @@ class CustomerOrderController extends Controller
     }
 
     public function getReceipt($id)
-    {
-        $order = Order::with(['orderItems.product'])->findOrFail($id);
-        
-        return response()->json([
-            'success' => true,
-            'receipt' => [
-                'order_id' => $order->id,
-                'date' => $order->created_at->format('Y-m-d H:i:s'),
-                'items' => $order->orderItems->map(function($item) {
-                    return [
-                        'name' => $item->product->name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'subtotal' => $item->subtotal,
-                    ];
-                }),
-                'subtotal' => $order->total,
-                'discount' => $order->discount,
-                'total' => $order->total - $order->discount,
-                'amount_received' => $order->mnt_recu,
-                'change' => $order->mnt_rendu
-            ]
-        ]);
-    }
+{
+    $order = Order::with(['orderItems.product'])->findOrFail($id);
+    
+    return response()->json([
+        'success' => true,
+        'receipt' => [
+            'order_id' => $order->id,
+            'date' => $order->created_at->format('Y-m-d H:i:s'),
+            'items' => $order->orderItems->map(function($item) {
+                return [
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'subtotal' => $item->subtotal,
+                ];
+            }),
+            'subtotal' => $order->total,
+            'discount' => $order->discount,
+            'total' => $order->total - $order->discount,
+            'amount_received' => $order->mnt_recu,
+            'change' => $order->mnt_rendu
+        ]
+    ]);
+}
 }
