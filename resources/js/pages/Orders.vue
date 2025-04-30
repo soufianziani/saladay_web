@@ -205,16 +205,16 @@ const printReceipt = async (order: any) => {
       const receipt = response.data.receipt
       
       const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no')
-      if (receiptWindow) {
+       if (receiptWindow) {
         receiptWindow.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
             <title>Reçu #${receipt.order_id}</title>
             <style>
-              body { 
-                margin: 0; 
-                padding: 20px;
+              body {
+                margin: 0;
+                padding: 10px;
                 font-family: 'Courier New', monospace;
                 font-size: 14px;
               }
@@ -227,6 +227,11 @@ const printReceipt = async (order: any) => {
                 text-align: center;
                 margin: 10px 0;
               }
+              .divider {
+                border-top: 1px dashed #000;
+                margin: 10px 0;
+                text-align: center;
+              }
               .items {
                 width: 100%;
                 margin: 10px 0;
@@ -234,15 +239,29 @@ const printReceipt = async (order: any) => {
               .item-row {
                 display: flex;
                 justify-content: space-between;
-                margin: 3px 0;
+                margin: 2px 0;
               }
-              .divider {
-                border-top: 1px dashed #000;
+              .item-name {
+                flex: 2;
+              }
+              .item-qty {
+                flex: 1;
+                text-align: center;
+              }
+              .item-price {
+                flex: 1;
+                text-align: right;
+              }
+              .summary {
                 margin: 10px 0;
               }
               .total-row {
                 font-weight: bold;
                 margin: 5px 0;
+              }
+              .double-divider {
+                border-top: 3px double #000;
+                margin: 10px 0;
               }
               @media print {
                 body { padding: 0; }
@@ -251,38 +270,46 @@ const printReceipt = async (order: any) => {
           </head>
           <body>
             <div class="receipt">
+              <div class="double-divider"></div>
+
               <div class="header">
-                <h2>SNACK SALADAY</h2>
-                ${receipt.discount_type?.includes('Canzi') ? '<p class="text-green-600 font-medium">Commande By Canzi</p>' : ''}
-                ${receipt.discount_type?.includes('Glovo') ? '<p class="text-green-600 font-medium">Commande By Glovo</p>' : ''}
+                <h2>SALADAY</h2>
                 <p>instagram : @saladay.meeka</p>
-                <p>téléphone : 07 00 12 29 54</p>
+                <p>téléphone : 06 03 82 29 54</p>
+              </div>
+
+              <div class="divider"></div>
+
+              <div>
                 <p>Caissier: ZAKARIA</p>
                 <p>Date: ${receipt.date}</p>
                 <p>Reçu #: REC-${receipt.order_id}</p>
               </div>
-              
+
               <div class="divider"></div>
-              
+
               <div class="items">
+                <div class="item-row">
+                  <span class="item-name"><strong>Produit</strong></span>
+                  <span class="item-qty"><strong>Qnt</strong></span>
+                  <span class="item-price"><strong>Prix</strong></span>
+                </div>
+                <div class="divider"></div>
                 ${receipt.items.map(item => `
                   <div class="item-row">
-                    <span>${item.name}</span>
-                    <span>${item.quantity} × ${formatPrice(item.price)}</span>
-                  </div>
-                  <div class="item-row">
-                    <span></span>
-                    <span>${formatPrice(item.subtotal)}</span>
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-qty">${item.quantity}</span>
+                    <span class="item-price">${formatPrice(item.price)}</span>
                   </div>
                 `).join('')}
               </div>
-              
+
               <div class="divider"></div>
-              
+
               <div class="summary">
                 <div class="item-row">
                   <span>Sous-total:</span>
-                  <span>${formatPrice(receipt.subtotal)}</span>
+                  <span>${formatPrice(receipt.subtotal )}</span>
                 </div>
                 ${receipt.discount > 0 ? `
                 <div class="item-row">
@@ -290,26 +317,19 @@ const printReceipt = async (order: any) => {
                   <span>-${formatPrice(receipt.discount)}</span>
                 </div>
                 ` : ''}
-                <div class="item-row">
-                  <span>Montant reçu:</span>
-                  <span>${formatPrice(receipt.amount_received)}</span>
-                </div>
-                <div class="item-row">
-                  <span>Monnaie rendue:</span>
-                  <span>${formatPrice(receipt.change)}</span>
-                </div>
-                <div class="divider"></div>
                 <div class="item-row total-row">
                   <span>TOTAL:</span>
                   <span>${formatPrice(receipt.total)}</span>
                 </div>
               </div>
-              
-              <div class="divider"></div>
-              
+
+              <div class="double-divider"></div>
+
               <div class="footer">
                 <p>Merci de votre visite!</p>
               </div>
+
+              <div class="double-divider"></div>
             </div>
             <script>
               window.onload = function() {
@@ -323,8 +343,8 @@ const printReceipt = async (order: any) => {
             <\/script>
           </body>
           </html>
-        `)
-        receiptWindow.document.close()
+        `);
+        receiptWindow.document.close();
       }
     }
   } catch (error) {

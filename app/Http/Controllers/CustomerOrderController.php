@@ -68,16 +68,19 @@ class CustomerOrderController extends Controller
                     ];
                 }
 
+                
+
                 $total = round($total, 2);
                 $discount = round($request->discount ?? 0, 2);
                 $mnt_recu = round($request->mnt_recu, 2);
                 $finalTotal = max(0, round($total - $discount, 2));
 
+
+
                 if ($mnt_recu < $finalTotal) {
                     throw new \Exception(
-                        "المبلغ المدفوع غير كافي. " .
-                        "الإجمالي: {$finalTotal}, المدفوع: {$mnt_recu}, " .
-                        "الناقص: " . ($finalTotal - $mnt_recu)
+                        "disount" .
+                        "{$discount} "
                     );
                 }
 
@@ -127,6 +130,8 @@ class CustomerOrderController extends Controller
     {
         $order = Order::with(['orderItems.product'])->findOrFail($id);
 
+
+
         return response()->json([
             'success' => true,
             'receipt' => [
@@ -137,12 +142,11 @@ class CustomerOrderController extends Controller
                         'name' => $item->product->name,
                         'quantity' => $item->quantity,
                         'price' => $item->price,
-                        'subtotal' => $item->subtotal,
                     ];
                 }),
-                'subtotal' => $order->total,
+                'subtotal' => ($order->total + $order->discount),
                 'discount' => $order->discount,
-                'total' => $order->total - $order->discount,
+                'total' => $order->total ,
                 'amount_received' => $order->mnt_recu,
                 'change' => $order->mnt_rendu
             ]
