@@ -153,6 +153,55 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    public function getFilteredReceipt(Request $request)
+    {
+        $validated = $request->validate([
+            'dateFrom' => 'required|date',
+            'dateTo' => 'required|date|after_or_equal:dateFrom'
+        ]);
+
+        $orders = Order::with(['orderItems.product'])
+            ->whereBetween('created_at', [
+                $validated['dateFrom'],
+                $validated['dateTo'] . ' 23:59:59'
+            ])
+            ->get();
+
+        // Aggregate product quantities and amounts
+        $products = [];
+        $totalAmount = 0;
+
+        foreach ($orders as $order) {
+            foreach ($order->orderItems as $item) {
+                $productId = $item->product->id;
+                if (!isset($products[$productId])) {
+                    $products[$productId] = [
+                        'name' => $item->product->name,
+                        'quantity' => 0,
+                        'price' => $item->price,
+                        'total' => 0
+                    ];
+                }
+                $products[$productId]['quantity'] += $item->quantity;
+                $products[$productId]['total'] += $item->quantity * $item->price;
+                $totalAmount += $item->quantity * $item->price;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'receipt' => [
+                'date_range' => [
+                    'from' => $validated['dateFrom'],
+                    'to' => $validated['dateTo'],
+                ],
+                'products' => array_values($products),
+                'total_amount' => $totalAmount,
+                'order_count' => $orders->count()
+            ]
+        ]);
+    }
+
     public function destroy($id)
     {
         $order = Order::findOrFail($id);

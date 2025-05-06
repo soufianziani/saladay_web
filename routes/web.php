@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CustomerOrderController;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,6 +12,7 @@ Route::get('/', function () {
 Route::get('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'index'])->name('customer.order');
 Route::post('/customer-order', [App\Http\Controllers\CustomerOrderController::class, 'store'])->name('customer.order.store');
 Route::get('/customer-order/receipt/{id}', [App\Http\Controllers\CustomerOrderController::class, 'getReceipt'])->name('customer.order.receipt');
+Route::post('/customer-order/filtered-receipt', [App\Http\Controllers\CustomerOrderController::class, 'getFilteredReceipt'])->name('customer.order.filtered-receipt');
 Route::delete('/customer-order/{id}', [App\Http\Controllers\CustomerOrderController::class, 'destroy'])
     ->middleware(['auth', 'verified'])
     ->name('customer.order.destroy');

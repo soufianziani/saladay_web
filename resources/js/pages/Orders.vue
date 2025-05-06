@@ -16,7 +16,53 @@
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto px-4 text-black sm:px-6 lg:px-8 py-6">
+      <!-- Filters -->
+      <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+            <div class="relative">
+              <input
+                type="date"
+                v-model="dateFrom"
+                class="block w-full rounded-md border-gray-300 pl-3 pr-10 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-green-500"
+              />
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+            <div class="relative">
+              <input
+                type="date"
+                v-model="dateTo"
+                class="block w-full rounded-md border-gray-300 pl-3 pr-10 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-green-500"
+                :min="dateFrom"
+              />
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-end">
+            <button
+              @click="printFilteredReceipt"
+              class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              :disabled="!dateFrom || !dateTo"
+            >
+              Print Filtered Receipt
+            </button>
+          </div>
+        </div>
+      </div>
+      
       <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -31,7 +77,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="order in props.orders" :key="order.id">
+              <tr v-for="order in filteredOrders" :key="order.id">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.id }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(order.created_at) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatPrice(order.total) }}</td>
@@ -144,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import axios from 'axios'
 
@@ -174,8 +220,29 @@ const props = defineProps<{
   orders: Order[]
 }>()
 
+// State
 const showDetailsModal = ref(false)
 const selectedOrder = ref<Order | null>(null)
+const dateFrom = ref<string>(new Date().toISOString().split('T')[0])
+const dateTo = ref<string>(new Date().toISOString().split('T')[0])
+
+// Computed property for filtered orders
+const filteredOrders = computed(() => {
+  if (!dateFrom.value && !dateTo.value) {
+    return props.orders
+  }
+
+  return props.orders.filter((order: Order) => {
+    const orderDate = new Date(order.created_at)
+    const fromDate = dateFrom.value ? new Date(dateFrom.value) : null
+    const toDate = dateTo.value ? new Date(dateTo.value) : null
+    
+    const isAfterFrom = !fromDate || orderDate >= fromDate
+    const isBeforeTo = !toDate || orderDate <= toDate
+    
+    return isAfterFrom && isBeforeTo
+  })
+})
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('fr-FR', {
@@ -193,12 +260,12 @@ const formatPrice = (price: number | string | undefined) => {
   return `${numPrice.toFixed(2)} DH`
 }
 
-const showOrderDetails = (order: any) => {
+const showOrderDetails = (order: Order) => {
   selectedOrder.value = order
   showDetailsModal.value = true
 }
 
-const printReceipt = async (order: any) => {
+const printReceipt = async (order: Order) => {
   try {
     const response = await axios.get(`/customer-order/receipt/${order.id}`)
     if (response.data.success) {
@@ -352,6 +419,149 @@ const printReceipt = async (order: any) => {
   }
 }
 
+const printFilteredReceipt = async () => {
+  if (!dateFrom.value || !dateTo.value) return
+
+  try {
+    const response = await axios.post('/customer-order/filtered-receipt', {
+      dateFrom: dateFrom.value,
+      dateTo: dateTo.value
+    })
+
+    if (response.data.success) {
+      const receipt = response.data.receipt
+      
+      const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no')
+      if (receiptWindow) {
+        receiptWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Filtered Orders Receipt</title>
+            <style>
+              body {
+                margin: 0;
+                padding: 10px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+              }
+              .receipt {
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+              }
+              .header, .footer {
+                text-align: center;
+                margin: 10px 0;
+              }
+              .divider {
+                border-top: 1px dashed #000;
+                margin: 10px 0;
+                text-align: center;
+              }
+              .items {
+                width: 100%;
+                margin: 10px 0;
+              }
+              .item-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 2px 0;
+              }
+              .item-name {
+                flex: 2;
+              }
+              .item-qty {
+                flex: 1;
+                text-align: center;
+              }
+              .item-price {
+                flex: 1;
+                text-align: right;
+              }
+              .summary {
+                margin: 10px 0;
+              }
+              .total-row {
+                font-weight: bold;
+                margin: 5px 0;
+              }
+              .double-divider {
+                border-top: 3px double #000;
+                margin: 10px 0;
+              }
+              @media print {
+                body { padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="receipt">
+              <div class="double-divider"></div>
+
+              <div class="header">
+                <h2>SALADAY</h2>
+                <p>Filtered Orders Report</p>
+                <p>From: ${new Date(receipt.date_range.from).toLocaleDateString()}</p>
+                <p>To: ${new Date(receipt.date_range.to).toLocaleDateString()}</p>
+                <p>Total Orders: ${receipt.order_count}</p>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="items">
+                <div class="item-row">
+                  <span class="item-name"><strong>Product</strong></span>
+                  <span class="item-qty"><strong>Qty</strong></span>
+                  <span class="item-price"><strong>Total</strong></span>
+                </div>
+                <div class="divider"></div>
+                ${receipt.products.map(item => `
+                  <div class="item-row">
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-qty">${item.quantity}</span>
+                    <span class="item-price">${formatPrice(item.total)}</span>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="summary">
+                <div class="item-row total-row">
+                  <span>TOTAL:</span>
+                  <span>${formatPrice(receipt.total_amount)}</span>
+                </div>
+              </div>
+
+              <div class="double-divider"></div>
+
+              <div class="footer">
+                <p>*** End of Report ***</p>
+              </div>
+
+              <div class="double-divider"></div>
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                  setTimeout(function() {
+                    window.close();
+                  }, 500);
+                }, 200);
+              }
+            <\/script>
+          </body>
+          </html>
+        `)
+        receiptWindow.document.close()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to print filtered receipt:', error)
+  }
+}
 const deleteOrder = async (order: Order) => {
   if (!confirm('Are you sure you want to delete this order?')) return
   
