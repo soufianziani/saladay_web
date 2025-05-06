@@ -67,15 +67,15 @@
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
                 <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Order Details #{{ selectedOrder?.id }}</h3>
-                
+
                 <div class="mb-6">
                   <h4 class="text-sm font-medium text-gray-700 mb-2">Products</h4>
                   <div class="space-y-3">
                     <div v-for="item in selectedOrder?.orderItems" :key="item.id" class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
                       <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-200">
-                        <img 
-                          v-if="item.product.image_url" 
-                          :src="item.product.image_url" 
+                        <img
+                          v-if="item.product.image_url"
+                          :src="item.product.image_url"
                           :alt="item.product.name"
                           class="w-full h-full object-cover"
                         />
@@ -203,10 +203,10 @@ const printReceipt = async (order: any) => {
     const response = await axios.get(`/customer-order/receipt/${order.id}`)
     if (response.data.success) {
       const receipt = response.data.receipt
-      
+
       const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no')
-       if (receiptWindow) {
-        receiptWindow.document.write(`
+      if (receiptWindow) {
+                receiptWindow.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
@@ -274,6 +274,8 @@ const printReceipt = async (order: any) => {
 
               <div class="header">
                 <h2>SALADAY</h2>
+                ${canziDiscount.value ? '<p>Commande By Canzi</p>' : ''}
+                ${glovoDiscount.value ? '<p>Commande By Glovo</p>' : ''}
                 <p>instagram : @saladay.meeka</p>
                 <p>téléphone : 06 03 82 29 54</p>
               </div>
@@ -295,13 +297,17 @@ const printReceipt = async (order: any) => {
                   <span class="item-price"><strong>Prix</strong></span>
                 </div>
                 <div class="divider"></div>
-                ${receipt.items.map(item => `
+                ${receipt.items
+                    .map(
+                        (item: { name: string; quantity: number; price: number }) => `
                   <div class="item-row">
                     <span class="item-name">${item.name}</span>
                     <span class="item-qty">${item.quantity}</span>
                     <span class="item-price">${formatPrice(item.price)}</span>
                   </div>
-                `).join('')}
+                `,
+                    )
+                    .join('')}
               </div>
 
               <div class="divider"></div>
@@ -309,14 +315,26 @@ const printReceipt = async (order: any) => {
               <div class="summary">
                 <div class="item-row">
                   <span>Sous-total:</span>
-                  <span>${formatPrice(receipt.subtotal )}</span>
+                  <span>${formatPrice(receipt.subtotal)}</span>
                 </div>
-                ${receipt.discount > 0 ? `
+                ${
+                    receipt.discount > 0
+                        ? `
                 <div class="item-row">
                   <span>Remise:</span>
                   <span>-${formatPrice(receipt.discount)}</span>
                 </div>
-                ` : ''}
+                `
+                        : ''
+                }
+                <div class="item-row">
+                  <span>Mnt reçu:</span>
+                  <span>${formatPrice(receipt.amount_received)}</span>
+                </div>
+                <div class="item-row">
+                  <span>Mnt rendue:</span>
+                  <span>${formatPrice(receipt.change)}</span>
+                </div>
                 <div class="item-row total-row">
                   <span>TOTAL:</span>
                   <span>${formatPrice(receipt.total)}</span>
@@ -344,8 +362,8 @@ const printReceipt = async (order: any) => {
           </body>
           </html>
         `);
-        receiptWindow.document.close();
-      }
+                receiptWindow.document.close();
+            }
     }
   } catch (error) {
     console.error('Failed to print receipt:', error)
@@ -354,7 +372,7 @@ const printReceipt = async (order: any) => {
 
 const deleteOrder = async (order: Order) => {
   if (!confirm('Are you sure you want to delete this order?')) return
-  
+
   try {
     await axios.delete(`/customer-order/${order.id}`)
     router.reload()
