@@ -20,7 +20,7 @@
                 <div class="space-y-6 lg:col-span-2">
                     <!-- Categories -->
                     <div class="rounded-lg bg-white p-4 shadow-sm">
-                        <h2 class="mb-3 text-lg font-medium">Categories</h2>
+                        <h2 class="mb-3 text-lg text-black font-medium">Categories</h2>
                         <div class="flex space-x-2 overflow-x-auto pb-2">
                             <button
                                 @click="selectedCategory = null"
@@ -46,8 +46,8 @@
                     </div>
 
                     <!-- Products Grid -->
-                    <div class="overflow-y-auto rounded-lg bg-white p-4 shadow-sm" style="max-height: 50vh">
-                        <h2 class="mb-4 text-lg font-medium">Products</h2>
+                    <div class="overflow-y-auto rounded-lg bg-white p-4 shadow-sm" style="max-height: 70vh">
+                        <h2 class="mb-4 text-lg text-black font-medium">Products</h2>
                         <div class="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6">
                             <div
                                 v-for="product in filteredProducts"
@@ -78,9 +78,9 @@
                                     </div>
                                 </div>
                                 <div class="p-2">
-                                    <h3 class="truncate text-xs font-medium text-gray-900">{{ product.name }}</h3>
+                                    <h3 class="truncate font-bold text-xl 0 text-gray-900">{{ product.name }}</h3>
                                     <div class="mt-1 flex items-center justify-between">
-                                        <p class="text-xs font-medium text-gray-900">{{ formatPrice(product.price) }}</p>
+                                        <p class=" font-medium text-gray-900">{{ formatPrice(product.price) }}</p>
                                     </div>
                                     <!-- Quantity controls -->
                                     <div v-if="getProductQuantity(product.id) > 0" class="mt-1 flex items-center justify-between">
@@ -466,7 +466,7 @@
                                     <span class="font-medium">{{ formatPrice(orderDetails?.total) }}</span>
                                 </div>
                             </div>
-                            <div v-if="orderDetails?.discount > 0" class="flex justify-between text-green-600">
+                            <div v-if="(orderDetails?.discount ?? 0) > 0" class="flex justify-between text-green-600">
                                 <span class="text-sm">Discount Applied</span>
                                 <span class="text-sm font-medium">-{{ formatPrice(orderDetails?.discount) }}</span>
                             </div>
@@ -775,7 +775,7 @@ const printReceipt = async () => {
                 <div class="divider"></div>
                 ${receipt.items
                     .map(
-                        (item) => `
+                        (item: { name: string; quantity: number; price: number }) => `
                   <div class="item-row">
                     <span class="item-name">${item.name}</span>
                     <span class="item-qty">${item.quantity}</span>
@@ -804,11 +804,11 @@ const printReceipt = async () => {
                         : ''
                 }
                 <div class="item-row">
-                  <span>Montant reçu:</span>
+                  <span>Mnt reçu:</span>
                   <span>${formatPrice(receipt.amount_received)}</span>
                 </div>
                 <div class="item-row">
-                  <span>Monnaie rendue:</span>
+                  <span>Mnt rendue:</span>
                   <span>${formatPrice(receipt.change)}</span>
                 </div>
                 <div class="item-row total-row">

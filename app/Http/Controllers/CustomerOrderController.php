@@ -44,7 +44,6 @@ class CustomerOrderController extends Controller
                 'discount' => 'sometimes|numeric|min:0'
             ]);
 
-            \DB::beginTransaction();
 
             try {
                 $total = 0;
@@ -68,7 +67,7 @@ class CustomerOrderController extends Controller
                     ];
                 }
 
-                
+
 
                 $total = round($total, 2);
                 $discount = round($request->discount ?? 0, 2);
@@ -89,7 +88,7 @@ class CustomerOrderController extends Controller
                     'discount' => $discount,
                     'mnt_recu' => $mnt_recu,
                     'mnt_rendu' => round($mnt_recu - $finalTotal, 2),
-                    'status' => 'pending',
+                    'status' => 'complete',
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
@@ -103,7 +102,6 @@ class CustomerOrderController extends Controller
                     ]);
                 }
 
-                \DB::commit();
 
                 return response()->json([
                     'success' => true,
@@ -112,7 +110,6 @@ class CustomerOrderController extends Controller
                 ], 201);
 
             } catch (\Exception $e) {
-                \DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage()
