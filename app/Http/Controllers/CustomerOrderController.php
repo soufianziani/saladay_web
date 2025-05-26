@@ -159,14 +159,15 @@ class CustomerOrderController extends Controller
 
         $orders = Order::with(['orderItems.product'])
             ->whereBetween('created_at', [
-                $validated['dateFrom'],
-                $validated['dateTo'] . ' 23:59:59'
+                $validated['dateFrom'] . ':00',
+                $validated['dateTo'] . ':00'
             ])
             ->get();
 
         // Aggregate product quantities and amounts
         $products = [];
         $totalAmount = 0;
+        $totalDiscount = 0;
 
         foreach ($orders as $order) {
             foreach ($order->orderItems as $item) {
@@ -180,9 +181,11 @@ class CustomerOrderController extends Controller
                     ];
                 }
                 $products[$productId]['quantity'] += $item->quantity;
-                $products[$productId]['total'] += $item->quantity * $item->price;
-                $totalAmount += $item->quantity * $item->price;
+                $products[$productId]['total'] +=  $item->price;
+
             }
+            $totalAmount += $order->total;
+            $totalDiscount += $order->discount;
         }
 
         return response()->json([
@@ -194,7 +197,8 @@ class CustomerOrderController extends Controller
                 ],
                 'products' => array_values($products),
                 'total_amount' => $totalAmount,
-                'order_count' => $orders->count()
+                'order_count' => $orders->count(),
+                'total_discount' => $totalDiscount,
             ]
         ]);
     }

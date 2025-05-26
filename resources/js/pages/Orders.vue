@@ -24,7 +24,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
             <div class="relative">
               <input
-                type="date"
+                type="datetime-local"
                 v-model="dateFrom"
                 class="block w-full rounded-md border-gray-300 pl-3 pr-10 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-green-500"
               />
@@ -39,7 +39,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
             <div class="relative">
               <input
-                type="date"
+                type="datetime-local"
                 v-model="dateTo"
                 class="block w-full rounded-md border-gray-300 pl-3 pr-10 py-2 text-sm shadow-sm focus:border-green-500 focus:ring-green-500"
                 :min="dateFrom"
@@ -62,7 +62,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -223,8 +223,8 @@ const props = defineProps<{
 // State
 const showDetailsModal = ref(false)
 const selectedOrder = ref<Order | null>(null)
-const dateFrom = ref<string>(new Date().toISOString().split('T')[0])
-const dateTo = ref<string>(new Date().toISOString().split('T')[0])
+const dateFrom = ref<string>(new Date().toISOString().slice(0, 16))
+const dateTo = ref<string>(new Date().toISOString().slice(0, 16))
 
 // Computed property for filtered orders
 const filteredOrders = computed(() => {
@@ -234,12 +234,12 @@ const filteredOrders = computed(() => {
 
   return props.orders.filter((order: Order) => {
     const orderDate = new Date(order.created_at)
-    const fromDate = dateFrom.value ? new Date(dateFrom.value) : null
-    const toDate = dateTo.value ? new Date(dateTo.value) : null
-    
+    const fromDate = dateFrom.value ? new Date(dateFrom.value + ':00Z') : null
+    const toDate = dateTo.value ? new Date(dateTo.value + ':00Z') : null
+
     const isAfterFrom = !fromDate || orderDate >= fromDate
     const isBeforeTo = !toDate || orderDate <= toDate
-    
+
     return isAfterFrom && isBeforeTo
   })
 })
@@ -341,8 +341,6 @@ const printReceipt = async (order: Order) => {
 
               <div class="header">
                 <h2>SALADAY</h2>
-                ${canziDiscount.value ? '<p>Commande By Canzi</p>' : ''}
-                ${glovoDiscount.value ? '<p>Commande By Glovo</p>' : ''}
                 <p>instagram : @saladay.meeka</p>
                 <p>téléphone : 06 03 82 29 54</p>
               </div>
@@ -448,7 +446,7 @@ const printFilteredReceipt = async () => {
 
     if (response.data.success) {
       const receipt = response.data.receipt
-      
+
       const receiptWindow = window.open('', '_blank', 'width=350,height=600,toolbar=no,scrollbars=no')
       if (receiptWindow) {
         receiptWindow.document.write(`
@@ -520,8 +518,8 @@ const printFilteredReceipt = async () => {
               <div class="header">
                 <h2>SALADAY</h2>
                 <p>Filtered Orders Report</p>
-                <p>From: ${new Date(receipt.date_range.from).toLocaleDateString()}</p>
-                <p>To: ${new Date(receipt.date_range.to).toLocaleDateString()}</p>
+                <p>From: ${new Date(receipt.date_range.from).toLocaleDateString('fr-FR')} ${new Date(receipt.date_range.from).toLocaleTimeString('fr-FR')}</p>
+                <p>To: ${new Date(receipt.date_range.to).toLocaleDateString('fr-FR')}   ${new Date(receipt.date_range.to).toLocaleTimeString('fr-FR')}</p>
                 <p>Total Orders: ${receipt.order_count}</p>
               </div>
 
@@ -551,14 +549,15 @@ const printFilteredReceipt = async () => {
                   <span>${formatPrice(receipt.total_amount)}</span>
                 </div>
               </div>
-
-              <div class="double-divider"></div>
-
-              <div class="footer">
-                <p>*** End of Report ***</p>
+              <div class="summary">
+                <div class="item-row total-row">
+                  <span>TOTAL Discount:</span>
+                  <span>${formatPrice(receipt.total_discount)}</span>
+                </div>
               </div>
 
               <div class="double-divider"></div>
+
             </div>
             <script>
               window.onload = function() {

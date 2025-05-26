@@ -521,7 +521,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertCircle, Check, CreditCard, FileText, Image, LoaderCircle, Minus, Plus, Printer, ShoppingCart, Tag, X } from 'lucide-vue-next';
+import { AlertCircle, Check, Clock, CreditCard, FileText, Image, LoaderCircle, Minus, Plus, Printer, ShoppingCart, Tag, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 // Configure axios defaults
@@ -760,7 +760,7 @@ const printReceipt = async () => {
 
               <div>
                 <p>Caissier: ZAKARIA</p>
-                <p>Date: ${receipt.date}</p>
+                <p>Date: ${new Date(receipt.date).toLocaleDateString('fr-FR')} ${new Date(receipt.date).toLocaleTimeString('fr-FR')}</p>
                 <p>Reçu #: REC-${receipt.order_id}</p>
               </div>
 
